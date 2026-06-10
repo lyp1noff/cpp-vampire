@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(SDL3 CONFIG REQUIRED)
 
 add_executable(cpp-vampire
+    src/App.cpp
     src/main.cpp
 )
 
