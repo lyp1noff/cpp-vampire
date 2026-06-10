@@ -1,0 +1,13 @@
+{
+  "name": "cpp-vampire",
+  "version-string": "0.1.0",
+  "dependencies": [
+    {
+      "name": "sdl3",
+      "default-features": false,
+      "features": [
+        "wayland"
+      ]
+    }
+  ]
+}
