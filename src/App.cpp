@@ -1,9 +1,7 @@
 #include "App.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <format>
 
 int App::run()
 {
@@ -125,16 +123,30 @@ void App::update(float deltaTime)
         dy /= length;
     }
 
-    player_.position.x += dx * player_.speed * deltaTime;
-    player_.position.y += dy * player_.speed * deltaTime;
+    player_.rect.x += dx * player_.speed * deltaTime;
+    player_.rect.y += dy * player_.speed * deltaTime;
 
-    float playerCenterX = player_.position.x + player_.w * 0.5f;
-    float playerCenterY = player_.position.y + player_.h * 0.5f;
+    Vec2 playerCenter = player_.rect.Center();
 
-    camera_.position.x = playerCenterX - kWindowWidth / 2;
-    camera_.position.y = playerCenterY - kWindowHeight / 2;
+    camera_.position.x = playerCenter.x - kWindowWidth / 2;
+    camera_.position.y = playerCenter.y - kWindowHeight / 2;
 
-    // std::cout << std::format("Cam X:{} Y:{} | Player X:{} Y:{}", camera_.position.x, camera_.position.y, player_.position.x, player_.position.y) << std::endl;
+    for (auto &enemy : enemies_)
+    {
+        Vec2 enemyCenter = enemy.rect.Center();
+        Vec2 toPlayer = {playerCenter.x - enemyCenter.x, playerCenter.y - enemyCenter.y};
+
+        const float toPlayerLength = std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
+        if (toPlayerLength > 0.0f)
+        {
+            toPlayer.x /= toPlayerLength;
+            toPlayer.y /= toPlayerLength;
+        }
+        enemy.rect.x += toPlayer.x * enemy.speed * deltaTime;
+        enemy.rect.y += toPlayer.y * enemy.speed * deltaTime;
+
+        // std::cout << checkCollision(player_.rect, enemy.rect) << std::endl;
+    }
 }
 
 Vec2 worldToScreen(Vec2 pos, Vec2 cameraPosition)
@@ -146,12 +158,14 @@ void App::addEnemies()
 {
     for (int i = 0; i < 5; i++)
     {
-        Enemy en = {
-            .position = {
+        Enemy enemy = {
+            .rect = {
                 static_cast<float>(i) * 50 + 50,
-                40},
-        };
-        enemies_.push_back(en);
+                40.0f,
+                40.0f,
+                40.0f,
+            }};
+        enemies_.push_back(enemy);
     }
 }
 
@@ -160,25 +174,25 @@ void App::render()
     SDL_SetRenderDrawColor(renderer_, 15, 15, 20, 255);
     SDL_RenderClear(renderer_);
 
-    Vec2 playerScreenPos = worldToScreen(player_.position, camera_.position);
+    Vec2 playerScreenPos = worldToScreen(player_.rect.Position(), camera_.position);
     const SDL_FRect playerRect{
         playerScreenPos.x,
         playerScreenPos.y,
-        player_.w,
-        player_.h};
+        player_.rect.w,
+        player_.rect.h};
 
     SDL_SetRenderDrawColor(renderer_, 80, 180, 255, 255);
     SDL_RenderFillRect(renderer_, &playerRect);
 
     for (const auto &enemy : enemies_)
     {
-        Vec2 objectScreenPos = worldToScreen({enemy.position.x, enemy.position.y}, camera_.position);
+        Vec2 enemyScreenPos = worldToScreen(enemy.rect.Position(), camera_.position);
         const SDL_FRect screenRect{
-            objectScreenPos.x,
-            objectScreenPos.y,
-            enemy.w,
-            enemy.h};
-
+            enemyScreenPos.x,
+            enemyScreenPos.y,
+            enemy.rect.w,
+            enemy.rect.h};
+        SDL_SetRenderDrawColor(renderer_, 255, 0, 0, 255);
         SDL_RenderFillRect(renderer_, &screenRect);
     }
 

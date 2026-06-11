@@ -1,11 +1,13 @@
 #pragma once
 
-#include "Vec2.hpp"
+#include "Rect.hpp"
 
 struct Player
 {
-    Vec2 position = {640.0f, 360.0f};
-    float w = 40.0f;
-    float h = 40.0f;
+    Rect rect{
+        .x = 640.0f,
+        .y = 360.0f,
+        .w = 40.0f,
+        .h = 40.0f};
     float speed = 300.0f;
 };

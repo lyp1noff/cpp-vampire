@@ -6,6 +6,7 @@
 #include "Player.hpp"
 #include "Enemy.hpp"
 #include "Camera.hpp"
+#include "Rect.hpp"
 
 class App
 {
