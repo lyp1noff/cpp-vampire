@@ -1,7 +1,6 @@
 #include "App.hpp"
 
-int main()
-{
+int main() {
     App app;
     return app.run();
 }

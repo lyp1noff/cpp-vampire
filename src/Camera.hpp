@@ -2,7 +2,6 @@
 
 #include "Vec2.hpp"
 
-struct Camera
-{
+struct Camera {
     Vec2 position = {0, 0};
 };

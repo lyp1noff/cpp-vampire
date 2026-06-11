@@ -6,10 +6,8 @@
 #include "Player.hpp"
 #include "Enemy.hpp"
 #include "Camera.hpp"
-#include "Rect.hpp"
 
-class App
-{
+class App {
 public:
     int run();
 
@@ -18,11 +16,16 @@ private:
     static constexpr int kWindowHeight = 720;
 
     bool initialize();
-    void shutdown();
-    void configureRenderer();
+
+    void shutdown() const;
+
+    void configureRenderer() const;
+
     void processEvents();
+
     void update(float deltaTime);
-    void render();
+
+    void render() const;
 
     void addEnemies();
 
