@@ -10,4 +10,5 @@ struct Player {
         .h = 64.0f
     };
     float speed = 300.0f;
+    bool isFacingLeft = false;
 };

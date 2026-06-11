@@ -117,9 +117,11 @@ void App::update(float deltaTime) {
     }
     if (keys[SDL_SCANCODE_A]) {
         dx -= 1.0f;
+        player_.isFacingLeft = true;
     }
     if (keys[SDL_SCANCODE_D]) {
         dx += 1.0f;
+        player_.isFacingLeft = false;
     }
 
     const float length = std::sqrt(dx * dx + dy * dy);
@@ -219,7 +221,8 @@ void App::render() const {
         player_.rect.h
     };
 
-    SDL_RenderTexture(renderer_, playerTexture_, nullptr, &playerRect);
+    SDL_RenderTextureRotated(renderer_, playerTexture_, nullptr, &playerRect, 0, nullptr,
+                             player_.isFacingLeft ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
 
     for (const auto &enemy: enemies_) {
         Vec2 enemyScreenPos = worldToScreen(enemy.rect.Position(), camera_.position);
