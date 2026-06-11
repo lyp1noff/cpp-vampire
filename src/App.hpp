@@ -25,12 +25,16 @@ private:
 
     void update(float deltaTime);
 
+    void renderBackground() const;
+
     void render() const;
 
     void addEnemies();
 
     SDL_Window *window_ = nullptr;
     SDL_Renderer *renderer_ = nullptr;
+    SDL_Texture *playerTexture_ = nullptr;
+    SDL_Texture *grassTexture_ = nullptr;
     bool running_ = true;
     Uint64 previousTime_ = 0;
     Player player_{};

@@ -1,7 +1,13 @@
 #include "App.hpp"
 
+#include <SDL3_image/SDL_image.h>
+
 #include <cmath>
+#include <format>
 #include <iostream>
+
+#include "Collision.hpp"
+#include "Transform.hpp"
 
 int App::run() {
     if (!initialize()) {
@@ -45,12 +51,28 @@ bool App::initialize() {
     }
 
     configureRenderer();
+
+    grassTexture_ = IMG_LoadTexture(renderer_, "assets/textures/grass-1.png");
+    if (!grassTexture_) {
+        std::cerr << "IMG_LoadTexture failed: " << SDL_GetError() << "\n";
+        shutdown();
+        return false;
+    }
+
+    playerTexture_ = IMG_LoadTexture(renderer_, "assets/textures/player.png");
+    if (!playerTexture_) {
+        std::cerr << "IMG_LoadTexture failed: " << SDL_GetError() << "\n";
+        shutdown();
+        return false;
+    }
+
     previousTime_ = SDL_GetTicks();
     addEnemies();
     return true;
 }
 
 void App::shutdown() const {
+    SDL_DestroyTexture(playerTexture_);
     SDL_DestroyRenderer(renderer_);
     SDL_DestroyWindow(window_);
     SDL_Quit();
@@ -79,33 +101,6 @@ void App::processEvents() {
             running_ = false;
         }
     }
-}
-
-void resolveEnemySeparation(Rect &A, Rect &B) {
-    Vec2 centerA = A.Center();
-    Vec2 centerB = B.Center();
-    Vec2 delta = {centerB.x - centerA.x, centerB.y - centerA.y};
-
-    float radiusA = A.w * 0.5f;
-    float radiusB = B.w * 0.5f;
-    float minDistance = radiusA + radiusB;
-
-    float distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-
-    if (distance >= minDistance)
-        return;
-
-    if (distance < 0.001f)
-        return;
-
-    float overlap = minDistance - distance;
-    Vec2 normal = {delta.x / distance, delta.y / distance};
-
-    float push = overlap * 0.5f;
-    A.x -= normal.x * push;
-    A.y -= normal.y * push;
-    B.x += normal.x * push;
-    B.y += normal.y * push;
 }
 
 void App::update(float deltaTime) {
@@ -152,19 +147,17 @@ void App::update(float deltaTime) {
         }
         enemy.rect.x += toPlayer.x * enemy.speed * deltaTime;
         enemy.rect.y += toPlayer.y * enemy.speed * deltaTime;
-
-        // std::cout << checkCollision(player_.rect, enemy.rect) << std::endl;
     }
 
     for (int i = 0; i < enemies_.size(); i++) {
         for (int j = i + 1; j < enemies_.size(); j++) {
-            resolveEnemySeparation(enemies_[i].rect, enemies_[j].rect);
+            resolveSeparation(enemies_[i].rect, enemies_[j].rect);
         }
     }
-}
 
-Vec2 worldToScreen(Vec2 pos, Vec2 cameraPosition) {
-    return {pos.x - cameraPosition.x, pos.y - cameraPosition.y};
+    for (auto &enemy: enemies_) {
+        resolveSeparation(player_.rect, enemy.rect, 0.25f, 0.75f);
+    }
 }
 
 void App::addEnemies() {
@@ -181,9 +174,42 @@ void App::addEnemies() {
     }
 }
 
+void App::renderBackground() const {
+    const float tileSize = 64.0f;
+
+    const float worldLeft = camera_.position.x;
+    const float worldTop = camera_.position.y;
+    const float worldRight = camera_.position.x + kWindowWidth;
+    const float worldBottom = camera_.position.y + kWindowHeight;
+
+    const int startTileX = static_cast<int>(std::floor(worldLeft / tileSize));
+    const int endTileX = static_cast<int>(std::floor(worldRight / tileSize));
+    const int startTileY = static_cast<int>(std::floor(worldTop / tileSize));
+    const int endTileY = static_cast<int>(std::floor(worldBottom / tileSize));
+
+    for (int tileY = startTileY; tileY <= endTileY; tileY++) {
+        for (int tileX = startTileX; tileX <= endTileX; tileX++) {
+            const float tileWorldX = tileX * tileSize;
+            const float tileWorldY = tileY * tileSize;
+
+            Vec2 tileScreenPos = worldToScreen({tileWorldX, tileWorldY}, camera_.position);
+
+            const SDL_FRect tileRect{
+                tileScreenPos.x,
+                tileScreenPos.y,
+                tileSize,
+                tileSize
+            };
+
+            SDL_RenderTexture(renderer_, grassTexture_, nullptr, &tileRect);
+        }
+    }
+}
+
 void App::render() const {
     SDL_SetRenderDrawColor(renderer_, 15, 15, 20, 255);
     SDL_RenderClear(renderer_);
+    renderBackground();
 
     Vec2 playerScreenPos = worldToScreen(player_.rect.Position(), camera_.position);
     const SDL_FRect playerRect{
@@ -193,8 +219,7 @@ void App::render() const {
         player_.rect.h
     };
 
-    SDL_SetRenderDrawColor(renderer_, 80, 180, 255, 255);
-    SDL_RenderFillRect(renderer_, &playerRect);
+    SDL_RenderTexture(renderer_, playerTexture_, nullptr, &playerRect);
 
     for (const auto &enemy: enemies_) {
         Vec2 enemyScreenPos = worldToScreen(enemy.rect.Position(), camera_.position);
