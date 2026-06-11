@@ -2,10 +2,10 @@
 
 #include "Vec2.hpp"
 
-struct Player
+struct Enemy
 {
-    Vec2 position = {640.0f, 360.0f};
+    Vec2 position;
     float w = 40.0f;
     float h = 40.0f;
-    float speed = 300.0f;
+    float speed = 160.0f;
 };

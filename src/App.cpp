@@ -55,6 +55,7 @@ bool App::initialize()
 
     configureRenderer();
     previousTime_ = SDL_GetTicks();
+    addEnemies();
     return true;
 }
 
@@ -124,19 +125,34 @@ void App::update(float deltaTime)
         dy /= length;
     }
 
-    player_.x += dx * player_.speed * deltaTime;
-    player_.y += dy * player_.speed * deltaTime;
+    player_.position.x += dx * player_.speed * deltaTime;
+    player_.position.y += dy * player_.speed * deltaTime;
 
-    // float playerCenterX = player_.x + player_.w * 0.5f;
-    // float playerCenterY = player_.y + player_.h * 0.5f;
+    float playerCenterX = player_.position.x + player_.w * 0.5f;
+    float playerCenterY = player_.position.y + player_.h * 0.5f;
 
-    // camera_.x = playerCenterX - kWindowWidth / 2;
-    // camera_.y = playerCenterY - kWindowHeight / 2;
+    camera_.position.x = playerCenterX - kWindowWidth / 2;
+    camera_.position.y = playerCenterY - kWindowHeight / 2;
 
-    // std::cout << std::format("Cam X:{} Y:{} | Player X:{} Y:{}", camera_.x, camera_.y, player_.x, player_.y) << std::endl;
+    // std::cout << std::format("Cam X:{} Y:{} | Player X:{} Y:{}", camera_.position.x, camera_.position.y, player_.position.x, player_.position.y) << std::endl;
+}
 
-    // player_.x = std::clamp(player_.x, 0.0f, static_cast<float>(kWindowWidth) - player_.w);
-    // player_.y = std::clamp(player_.y, 0.0f, static_cast<float>(kWindowHeight) - player_.h);
+Vec2 worldToScreen(Vec2 pos, Vec2 cameraPosition)
+{
+    return {pos.x - cameraPosition.x, pos.y - cameraPosition.y};
+}
+
+void App::addEnemies()
+{
+    for (int i = 0; i < 5; i++)
+    {
+        Enemy en = {
+            .position = {
+                static_cast<float>(i) * 50 + 50,
+                40},
+        };
+        enemies_.push_back(en);
+    }
 }
 
 void App::render()
@@ -144,13 +160,27 @@ void App::render()
     SDL_SetRenderDrawColor(renderer_, 15, 15, 20, 255);
     SDL_RenderClear(renderer_);
 
+    Vec2 playerScreenPos = worldToScreen(player_.position, camera_.position);
     const SDL_FRect playerRect{
-        player_.x,
-        player_.y,
+        playerScreenPos.x,
+        playerScreenPos.y,
         player_.w,
         player_.h};
 
     SDL_SetRenderDrawColor(renderer_, 80, 180, 255, 255);
     SDL_RenderFillRect(renderer_, &playerRect);
+
+    for (const auto &enemy : enemies_)
+    {
+        Vec2 objectScreenPos = worldToScreen({enemy.position.x, enemy.position.y}, camera_.position);
+        const SDL_FRect screenRect{
+            objectScreenPos.x,
+            objectScreenPos.y,
+            enemy.w,
+            enemy.h};
+
+        SDL_RenderFillRect(renderer_, &screenRect);
+    }
+
     SDL_RenderPresent(renderer_);
 }

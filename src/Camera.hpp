@@ -1,7 +1,8 @@
 #pragma once
 
+#include "Vec2.hpp"
+
 struct Camera
 {
-    float x;
-    float y;
+    Vec2 position = {0, 0};
 };

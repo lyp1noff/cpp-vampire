@@ -6,6 +6,9 @@
 - Keep the code simple and explicit over "engine-like" abstractions.
 - Prefer small, understandable refactors over large architectural jumps.
 - Do not jump straight to writing code; prefer teaching, guiding, and giving hints first.
+- For naming, code placement, and formatting, it is fine to give direct recommendations or propose the exact shape to use.
+- Keep the teaching-first approach for gameplay logic, architecture, and mechanics unless code is explicitly requested.
+- When suggesting a next step or refactor, state which existing file should change or that a new file should be created.
 
 ## Build Setup
 
