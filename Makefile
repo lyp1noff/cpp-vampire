@@ -4,10 +4,10 @@ BUILD_DIR := build/vcpkg
 TARGET := $(BUILD_DIR)/cpp-vampire
 
 configure:
-	cmake --preset default-local
+	cmake --preset default
 
 build:
-	cmake --build --preset default-local
+	cmake --build --preset default
 
 run:
 	$(TARGET)

@@ -3,7 +3,6 @@
 #include <SDL3_image/SDL_image.h>
 
 #include <cmath>
-#include <format>
 #include <iostream>
 
 #include "Collision.hpp"
@@ -73,6 +72,7 @@ bool App::initialize() {
 
 void App::shutdown() const {
     SDL_DestroyTexture(playerTexture_);
+    SDL_DestroyTexture(grassTexture_);
     SDL_DestroyRenderer(renderer_);
     SDL_DestroyWindow(window_);
     SDL_Quit();
